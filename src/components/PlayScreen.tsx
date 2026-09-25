@@ -5,10 +5,18 @@ import { useGameStore } from "@/store/gameStore";
 import { requestHint, submitGuess } from "@/lib/api";
 import { GuessInput } from "./GuessInput";
 import { NotesGrid } from "./NotesGrid";
+import type { CellFeedback } from "@/lib/puzzle/types";
+
+const FEEDBACK_COLORS: Record<CellFeedback, string> = {
+  exact: "bg-emerald-500 text-white",
+  present: "bg-amber-400 text-white",
+  absent: "bg-red-400 text-white",
+};
 
 export function PlayScreen() {
   const gameId = useGameStore((s) => s.gameId);
   const digitCount = useGameStore((s) => s.digitCount);
+  const difficulty = useGameStore((s) => s.difficulty);
   const hints = useGameStore((s) => s.hints);
   const attempts = useGameStore((s) => s.attempts);
   const addHint = useGameStore((s) => s.addHint);
@@ -39,7 +47,7 @@ export function PlayScreen() {
     setError(null);
     try {
       const res = await submitGuess(gameId, guess);
-      addAttempt({ guess, correct: res.correct });
+      addAttempt({ guess, correct: res.correct, feedback: res.feedback });
       if (res.correct && res.score !== undefined && res.review) {
         win(res.score, res.review);
       }
@@ -88,23 +96,50 @@ export function PlayScreen() {
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
             시도 기록 ({attempts.length})
           </h2>
-          <ul className="flex flex-wrap gap-2">
-            {attempts.map((a, i) => (
-              <li
-                key={i}
-                className={`rounded-lg px-3 py-1 font-mono text-sm ${
-                  a.correct
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                }`}
-              >
-                {a.guess.join("")}
-              </li>
-            ))}
+          <ul className="flex flex-col gap-2">
+            {attempts.map((a, i) =>
+              a.feedback ? (
+                <li key={i} className="flex gap-1">
+                  {a.guess.map((d, j) => (
+                    <span
+                      key={j}
+                      className={`flex h-8 w-8 items-center justify-center rounded-md font-mono text-sm font-semibold ${FEEDBACK_COLORS[a.feedback![j]]}`}
+                    >
+                      {d}
+                    </span>
+                  ))}
+                </li>
+              ) : (
+                <li
+                  key={i}
+                  className={`inline-block w-fit rounded-lg px-3 py-1 font-mono text-sm ${
+                    a.correct
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  }`}
+                >
+                  {a.guess.join("")}
+                </li>
+              )
+            )}
           </ul>
-          <p className="mt-3 text-xs text-slate-400">
-            틀린 시도는 어디가 틀렸는지 알려주지 않아요. 정답을 맞히면 전체 기록을 복기해드릴게요.
-          </p>
+          {difficulty === "easy" ? (
+            <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+              <span className="flex items-center gap-1">
+                <span className="h-3 w-3 rounded bg-emerald-500" /> 자리+숫자 일치
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-3 w-3 rounded bg-amber-400" /> 숫자만 포함
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-3 w-3 rounded bg-red-400" /> 불일치
+              </span>
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-slate-400">
+              틀린 시도는 어디가 틀렸는지 알려주지 않아요. 정답을 맞히면 전체 기록을 복기해드릴게요.
+            </p>
+          )}
         </section>
       )}
     </div>

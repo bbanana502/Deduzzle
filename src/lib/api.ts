@@ -1,4 +1,5 @@
-import type { AttemptReview } from "@/lib/puzzle/types";
+import type { AttemptReview, CellFeedback } from "@/lib/puzzle/types";
+import type { Difficulty } from "@/store/gameStore";
 
 async function handle<T>(res: Response): Promise<T> {
   const body = await res.json().catch(() => ({}));
@@ -9,6 +10,7 @@ async function handle<T>(res: Response): Promise<T> {
 export function startGame(payload: {
   digitCount: number;
   hintCount: number;
+  difficulty: Difficulty;
   nickname?: string;
 }) {
   return fetch("/api/games", {
@@ -19,6 +21,7 @@ export function startGame(payload: {
     handle<{
       gameId: string;
       digitCount: number;
+      difficulty: Difficulty;
       hints: string[];
       minimumRequired: number;
       adjustedToMinimum: boolean;
@@ -38,7 +41,12 @@ export function submitGuess(gameId: string, guess: number[]) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ guess }),
   }).then((res) =>
-    handle<{ correct: boolean; score?: number; review?: AttemptReview[] }>(res)
+    handle<{
+      correct: boolean;
+      score?: number;
+      review?: AttemptReview[];
+      feedback?: CellFeedback[];
+    }>(res)
   );
 }
 

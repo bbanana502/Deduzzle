@@ -1,7 +1,14 @@
 import { create } from "zustand";
-import type { AttemptReview } from "@/lib/puzzle/types";
+import type { AttemptReview, CellFeedback } from "@/lib/puzzle/types";
 
-export type ClientAttempt = { guess: number[]; correct: boolean };
+export type Difficulty = "easy" | "hard";
+
+export type ClientAttempt = {
+  guess: number[];
+  correct: boolean;
+  /** 이지모드에서만 채워짐 — 자리별 정확/포함/불일치 피드백 */
+  feedback?: CellFeedback[];
+};
 
 /** notes[position][digit] === true 면 "아직 가능한 후보"로 표시된 상태 */
 export type Notes = boolean[][];
@@ -16,18 +23,26 @@ interface GameState {
   phase: Phase;
   gameId: string | null;
   digitCount: number;
+  difficulty: Difficulty;
   hints: string[];
   attempts: ClientAttempt[];
   score: number | null;
   review: AttemptReview[] | null;
   notes: Notes;
+  freeNotes: string;
 
-  startGame: (payload: { gameId: string; digitCount: number; hints: string[] }) => void;
+  startGame: (payload: {
+    gameId: string;
+    digitCount: number;
+    difficulty: Difficulty;
+    hints: string[];
+  }) => void;
   addHint: (text: string) => void;
   addAttempt: (attempt: ClientAttempt) => void;
   win: (score: number, review: AttemptReview[]) => void;
   toggleNote: (position: number, digit: number) => void;
   resetNotes: () => void;
+  setFreeNotes: (text: string) => void;
   reset: () => void;
 }
 
@@ -35,22 +50,26 @@ export const useGameStore = create<GameState>((set) => ({
   phase: "setup",
   gameId: null,
   digitCount: 5,
+  difficulty: "hard",
   hints: [],
   attempts: [],
   score: null,
   review: null,
   notes: [],
+  freeNotes: "",
 
-  startGame: ({ gameId, digitCount, hints }) =>
+  startGame: ({ gameId, digitCount, difficulty, hints }) =>
     set({
       phase: "playing",
       gameId,
       digitCount,
+      difficulty,
       hints,
       attempts: [],
       score: null,
       review: null,
       notes: createNotes(digitCount),
+      freeNotes: "",
     }),
   addHint: (text) => set((s) => ({ hints: [...s.hints, text] })),
   addAttempt: (attempt) => set((s) => ({ attempts: [...s.attempts, attempt] })),
@@ -62,6 +81,7 @@ export const useGameStore = create<GameState>((set) => ({
       return { notes };
     }),
   resetNotes: () => set((s) => ({ notes: createNotes(s.digitCount) })),
+  setFreeNotes: (text) => set({ freeNotes: text }),
   reset: () =>
     set({
       phase: "setup",
@@ -71,5 +91,6 @@ export const useGameStore = create<GameState>((set) => ({
       score: null,
       review: null,
       notes: [],
+      freeNotes: "",
     }),
 }));

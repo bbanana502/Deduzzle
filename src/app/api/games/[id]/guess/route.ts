@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buildReview } from "@/lib/puzzle/engine";
+import { buildReview, computeFeedback } from "@/lib/puzzle/engine";
 import { calculateScore } from "@/lib/puzzle/score";
 import type { GameRow, AttemptRow } from "@/lib/supabase/types";
 
@@ -61,7 +61,11 @@ export async function POST(
       .from("games")
       .update({ wrong_guesses: game.wrong_guesses + 1 })
       .eq("id", id);
-    // 어디가 틀렸는지는 알려주지 않는다. 정답을 맞혀야만 전체 기록을 복기할 수 있다.
+    // 하드모드는 어디가 틀렸는지 알려주지 않는다. 이지모드만 자리별 피드백을 공개한다.
+    if (game.difficulty === "easy") {
+      const feedback = computeFeedback(guess, game.answer);
+      return NextResponse.json({ correct: false, feedback });
+    }
     return NextResponse.json({ correct: false });
   }
 

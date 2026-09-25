@@ -13,6 +13,8 @@ export function NotesGrid() {
   const notes = useGameStore((s) => s.notes);
   const toggleNote = useGameStore((s) => s.toggleNote);
   const resetNotes = useGameStore((s) => s.resetNotes);
+  const freeNotes = useGameStore((s) => s.freeNotes);
+  const setFreeNotes = useGameStore((s) => s.setFreeNotes);
 
   if (notes.length === 0) return null;
 
@@ -56,6 +58,19 @@ export function NotesGrid() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <label className="mb-2 block text-xs font-medium text-slate-500 dark:text-slate-400">
+          자유 메모 (추론 과정을 마음껏 적어두세요)
+        </label>
+        <textarea
+          value={freeNotes}
+          onChange={(e) => setFreeNotes(e.target.value)}
+          rows={4}
+          placeholder="예) 천의 자리 - 십의 자리 = 8 이니까 (8,0) 또는 (9,1)..."
+          className="w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+        />
       </div>
     </section>
   );

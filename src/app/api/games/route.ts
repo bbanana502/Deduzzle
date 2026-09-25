@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
   const nickname = typeof body?.nickname === "string" && body.nickname.trim()
     ? body.nickname.trim().slice(0, 20)
     : null;
+  const difficulty = body?.difficulty === "easy" ? "easy" : "hard";
 
   if (
     !Number.isInteger(digitCount) ||
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       nickname: nickname ?? profile?.nickname ?? "익명",
       digit_count: digitCount,
+      difficulty,
       answer,
       hints,
       remaining_pool: remainingPool,
@@ -81,6 +83,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     gameId: game.id,
     digitCount,
+    difficulty,
     hints: hints.map((h) => h.text),
     minimumRequired,
     adjustedToMinimum: requestedHintCount < minimumRequired,
