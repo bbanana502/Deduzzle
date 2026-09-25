@@ -38,7 +38,7 @@ export function GuessInput({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
         {values.map((v, i) => (
           <input
             key={i}
@@ -51,7 +51,7 @@ export function GuessInput({
             onKeyDown={(e) => handleKeyDown(i, e)}
             inputMode="numeric"
             maxLength={1}
-            className="h-12 w-10 rounded-lg border border-slate-300 text-center text-xl font-semibold focus:border-indigo-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950"
+            className="h-10 w-8 rounded-lg border border-slate-300 text-center text-lg font-semibold focus:border-indigo-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 sm:h-12 sm:w-10 sm:text-xl"
           />
         ))}
       </div>
