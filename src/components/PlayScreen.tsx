@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { requestHint, submitGuess } from "@/lib/api";
 import { GuessInput } from "./GuessInput";
+import { NotesGrid } from "./NotesGrid";
 
 export function PlayScreen() {
   const gameId = useGameStore((s) => s.gameId);
@@ -71,6 +72,8 @@ export function PlayScreen() {
           {hintLoading ? "불러오는 중..." : "+ 힌트 추가 요청 (점수 감점)"}
         </button>
       </section>
+
+      <NotesGrid />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
