@@ -5,6 +5,7 @@ export interface GameRow {
   user_id: string;
   nickname: string;
   digit_count: number;
+  difficulty: "easy" | "hard";
   answer: Digits;
   hints: HintSpec[];
   remaining_pool: HintSpec[];

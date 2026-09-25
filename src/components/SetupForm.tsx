@@ -9,6 +9,7 @@ export function SetupForm() {
   const [digitCount, setDigitCount] = useState(5);
   const [hintCount, setHintCount] = useState(6);
   const [nickname, setNickname] = useState("");
+  const [difficulty, setDifficulty] = useState<"easy" | "hard">("hard");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const storeStart = useGameStore((s) => s.startGame);
@@ -21,9 +22,15 @@ export function SetupForm() {
       const res = await startGame({
         digitCount,
         hintCount,
+        difficulty,
         nickname: nickname.trim() || undefined,
       });
-      storeStart({ gameId: res.gameId, digitCount: res.digitCount, hints: res.hints });
+      storeStart({
+        gameId: res.gameId,
+        digitCount: res.digitCount,
+        difficulty: res.difficulty,
+        hints: res.hints,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "게임을 시작하지 못했습니다.");
     } finally {
@@ -60,6 +67,38 @@ export function SetupForm() {
           onChange={(e) => setHintCount(Number(e.target.value))}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
         />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+          난이도
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setDifficulty("easy")}
+            className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+              difficulty === "easy"
+                ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                : "border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            }`}
+          >
+            <div className="font-semibold">이지모드</div>
+            <div className="text-xs opacity-80">틀려도 자리별 정확/포함/불일치를 색으로 알려줌</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDifficulty("hard")}
+            className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+              difficulty === "hard"
+                ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                : "border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            }`}
+          >
+            <div className="font-semibold">하드모드</div>
+            <div className="text-xs opacity-80">정답 여부만 알려줌 (오직 힌트로만 추리)</div>
+          </button>
+        </div>
       </div>
 
       <div>
