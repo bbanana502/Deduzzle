@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generatePuzzle, MIN_DIGITS, MAX_DIGITS } from "@/lib/puzzle/engine";
 
 const MAX_HINT_COUNT = 40;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_GAMES = 5;
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -13,6 +15,22 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const admin = createAdminClient();
+
+  const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+  const { count: recentGameCount } = await admin
+    .from("games")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("created_at", since);
+
+  if ((recentGameCount ?? 0) >= RATE_LIMIT_MAX_GAMES) {
+    return NextResponse.json(
+      { error: "너무 자주 게임을 생성했어요. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
   }
 
   const body = await request.json().catch(() => null);
@@ -48,8 +66,6 @@ export async function POST(request: NextRequest) {
     digitCount,
     requestedHintCount
   );
-
-  const admin = createAdminClient();
 
   if (nickname) {
     await admin.from("profiles").upsert({ id: user.id, nickname });

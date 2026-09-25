@@ -26,6 +26,7 @@ export function PlayScreen() {
   const [hintLoading, setHintLoading] = useState(false);
   const [guessLoading, setGuessLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [noMoreHints, setNoMoreHints] = useState(false);
 
   async function handleHint() {
     if (!gameId) return;
@@ -35,7 +36,11 @@ export function PlayScreen() {
       const res = await requestHint(gameId);
       addHint(res.text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "힌트를 더 받을 수 없습니다.");
+      if (e instanceof Error && e.message.includes("더 이상 제공할 힌트가 없습니다")) {
+        setNoMoreHints(true);
+      } else {
+        setError(e instanceof Error ? e.message : "힌트를 더 받을 수 없습니다.");
+      }
     } finally {
       setHintLoading(false);
     }
@@ -72,13 +77,17 @@ export function PlayScreen() {
             </li>
           ))}
         </ul>
-        <button
-          onClick={handleHint}
-          disabled={hintLoading}
-          className="mt-4 text-sm font-medium text-indigo-600 hover:underline disabled:opacity-50 dark:text-indigo-400"
-        >
-          {hintLoading ? "불러오는 중..." : "+ 힌트 추가 요청 (점수 감점)"}
-        </button>
+        {noMoreHints ? (
+          <p className="mt-4 text-sm text-slate-400">더 이상 제공할 힌트가 없어요. 지금까지의 힌트로 추리해보세요.</p>
+        ) : (
+          <button
+            onClick={handleHint}
+            disabled={hintLoading}
+            className="mt-4 text-sm font-medium text-indigo-600 hover:underline disabled:opacity-50 dark:text-indigo-400"
+          >
+            {hintLoading ? "불러오는 중..." : "+ 힌트 추가 요청 (점수 감점)"}
+          </button>
+        )}
       </section>
 
       <NotesGrid />
